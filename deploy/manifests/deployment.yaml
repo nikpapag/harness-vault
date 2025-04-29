@@ -23,6 +23,7 @@ spec:
             {{- end }}
       labels:
         app: example
+        harnessservice: {{ .sa }}
     spec:
       serviceAccountName: exampleapp  # Must match the role binding in Vault
       containers:
