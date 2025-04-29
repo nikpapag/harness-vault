@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-deployment
+  labels:
+    app: example
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: example
+  template:
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "exampleapp"  # Vault role to assume
+        vault.hashicorp.com/agent-inject-secret-env.sh: "secret/data/exampleapp/config"  # Path in Vault
+        vault.hashicorp.com/namespace: 'admin'
+        vault.hashicorp.com/agent-inject-template-env.sh: |
+            {{- with secret "secret/data/exampleapp/config" -}}
+                      username = {{ .Data.data.username }}
+                      password = {{ .Data.data.password }}
+            {{- end }}
+      labels:
+        app: example
+    spec:
+      serviceAccountName: exampleapp  # Must match the role binding in Vault
+      containers:
+        - name: app
+          image: ubuntu  # Replace with your app image
+          command: [ "/bin/bash", "-c", "--" ]
+          args: [ "while true; do sleep 30; done;"]
